@@ -1,0 +1,42 @@
+image: and07/image-go-ci:latest
+
+services:
+  - docker:dind
+
+stages:
+- build
+- test
+#- lint
+#- deploy
+
+#variables:
+#  KUBECONFIG: /etc/deploy/config
+#  REPOSITORY: ad1asia/boilerplate-go
+#  NAMESPACE: boilerplate-go
+#  TAG: ${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+#  CONTAINER_IMAGE: docker.io/${REPOSITORY}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
+#  CONTAINER_IMAGE_LATEST: docker.io/${REPOSITORY}:latest
+
+build:
+  stage: build
+  script:
+    - docker logout
+    - docker login -u $DOCKER_USER -p $DOCKER_PASS docker.io
+    - make docker-push-ci
+
+test:
+  stage: test
+  script:
+    - make test
+
+#lint:
+#  stage: lint
+#  script:
+#    - make lint-full
+
+# deploy:
+#   stage: deploy
+#   script:
+#   - ansible-playbook playbook.yml --extra-vars "BROKERS_KAFKA=$BROKERS_KAFKA CLICKHOUSE_URL=$CLICKHOUSE_URL JAEGER_AGENT_HOST=$JAEGER_AGENT_HOST JAEGER_SERVICE_NAME=$JAEGER_SERVICE_NAME JAEGER_SAMPLER_TYPE=$JAEGER_SAMPLER_TYPE JAEGER_SAMPLER_PARAM=$JAEGER_SAMPLER_PARAM"
+#   tags:
+#     - deploy
