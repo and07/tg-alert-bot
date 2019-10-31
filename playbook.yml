@@ -1,0 +1,13 @@
+- hosts: ad1
+  tasks:
+
+  - name: DEPLOY tg-alert-bot
+    docker_container:
+      name: tg-alert-bot
+      image: ad1asia/tg-alert-bot
+      state: started
+      pull: yes
+      recreate: yes
+      env:
+          TG_API_KEY: "{{ TG_API_KEY }}"
+          TG_CHAT_ID: "{{ TG_CHAT_ID }}"
