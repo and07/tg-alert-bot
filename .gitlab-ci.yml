@@ -7,7 +7,7 @@ stages:
 - build
 - test
 #- lint
-#- deploy
+- deploy
 
 #variables:
 #  KUBECONFIG: /etc/deploy/config
@@ -34,9 +34,9 @@ test:
 #  script:
 #    - make lint-full
 
-# deploy:
-#   stage: deploy
-#   script:
-#   - ansible-playbook playbook.yml --extra-vars "BROKERS_KAFKA=$BROKERS_KAFKA CLICKHOUSE_URL=$CLICKHOUSE_URL JAEGER_AGENT_HOST=$JAEGER_AGENT_HOST JAEGER_SERVICE_NAME=$JAEGER_SERVICE_NAME JAEGER_SAMPLER_TYPE=$JAEGER_SAMPLER_TYPE JAEGER_SAMPLER_PARAM=$JAEGER_SAMPLER_PARAM"
-#   tags:
-#     - deploy
+deploy:
+  stage: deploy
+  script:
+  - ansible-playbook playbook.yml --extra-vars "TG_API_KEY=$TG_API_KEY TG_CHAT_ID=$TG_CHAT_ID"
+  tags:
+    - deploy
