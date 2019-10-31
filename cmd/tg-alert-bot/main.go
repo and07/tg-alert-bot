@@ -15,6 +15,7 @@ func sendMessageToBot(message string) {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TG_API_KEY"))
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	chatID, err := strconv.ParseInt(os.Getenv("TG_CHAT_ID"), 10, 64)
