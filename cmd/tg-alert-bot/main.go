@@ -33,7 +33,7 @@ func sendMessageToBot(message string) {
 
 func main() {
 
-	ticker := time.NewTicker(50 * time.Second)
+	ticker := time.NewTicker(1 * time.Hour)
 	for range ticker.C {
 		log.Println("Tick")
 		sendMessageToBot("test")
