@@ -9,7 +9,7 @@
       pull: yes
       recreate: yes
       ports:
-      - "127.0.0.1:80809:9090"
+      - "127.0.0.1:10809:9090"
       env:
           TG_API_KEY: "{{ TG_API_KEY }}"
           TG_CHAT_ID: "{{ TG_CHAT_ID }}"
