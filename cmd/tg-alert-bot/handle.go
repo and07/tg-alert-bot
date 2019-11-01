@@ -69,13 +69,13 @@ func webhookHandler(ctx context.Context) func(w http.ResponseWriter, r *http.Req
 
 			for _, v := range am.Alerts {
 				message += fmt.Sprintf(`
-				[*%s*]
-				**alertname** : _%s_
-				**device** : _%s_
-				**instance** : _%s_
-				**severity** : _%s_
-				**description** : _%s_
-				**summary** : _%s_
+				*[%s]*
+				*alertname* : _%s_
+				*device* : _%s_
+				*instance* : _%s_
+				*severity* : _%s_
+				*description* : _%s_
+				*summary* : _%s_
 				`, strings.ToUpper(v.Status), v.Labels.Alertname, v.Labels.Device, v.Labels.Instance, v.Labels.Severity, v.Annotations.Description, v.Annotations.Summary)
 			}
 
