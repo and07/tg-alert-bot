@@ -74,7 +74,8 @@ func webhookHandler(ctx context.Context) func(w http.ResponseWriter, r *http.Req
 				%s
 				%s
 				%s
-				%s`, v.Status, v.Labels.Alertname, v.Labels.Device, v.Labels.Instance, v.Labels.Severity, v.Annotations.Description, v.Annotations.Summary)
+				%s
+				`, v.Status, v.Labels.Alertname, v.Labels.Device, v.Labels.Instance, v.Labels.Severity, v.Annotations.Description, v.Annotations.Summary)
 			}
 
 			sendMessageToBot(message)
