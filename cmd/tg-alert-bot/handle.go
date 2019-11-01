@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -27,6 +28,7 @@ func sendMessageToBot(message string) {
 	}
 	// создаем ответное сообщение
 	msg := tgbotapi.NewMessage(chatID, message)
+	msg.ParseMode = "markdown"
 	// отправляем
 	_, err = bot.Send(msg)
 	if err != nil {
@@ -57,7 +59,25 @@ func webhookHandler(ctx context.Context) func(w http.ResponseWriter, r *http.Req
 					http.StatusInternalServerError)
 			}
 
-			sendMessageToBot(string(body))
+			var am AlertMessage
+			if err := json.Unmarshal(body, &am); err != nil {
+				log.Println(err)
+			}
+
+			var message string
+
+			for _, v := range am.Alerts {
+				message += fmt.Sprintf(`
+				*%s*
+				*%s*
+				%s
+				%s
+				%s
+				%s
+				%s`, v.Status, v.Labels.Alertname, v.Labels.Device, v.Labels.Instance, v.Labels.Severity, v.Annotations.Description, v.Annotations.Summary)
+			}
+
+			sendMessageToBot(message)
 
 			fmt.Fprint(w, "POST done")
 		} else {
