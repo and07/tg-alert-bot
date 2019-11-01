@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	tgbotapi "github.com/Syfaro/telegram-bot-api"
 	log "gitlab.com/and07test/tg-alert-bot/internal/pkg/logger"
@@ -68,14 +69,14 @@ func webhookHandler(ctx context.Context) func(w http.ResponseWriter, r *http.Req
 
 			for _, v := range am.Alerts {
 				message += fmt.Sprintf(`
-				*%s*
-				*%s*
-				%s
-				%s
-				%s
-				%s
-				%s
-				`, v.Status, v.Labels.Alertname, v.Labels.Device, v.Labels.Instance, v.Labels.Severity, v.Annotations.Description, v.Annotations.Summary)
+				[*%s*]
+				**alertname** : _%s_
+				**device** : _%s_
+				**instance** : _%s_
+				**severity** : _%s_
+				**description** : _%s_
+				**summary** : _%s_
+				`, strings.ToUpper(v.Status), v.Labels.Alertname, v.Labels.Device, v.Labels.Instance, v.Labels.Severity, v.Annotations.Description, v.Annotations.Summary)
 			}
 
 			sendMessageToBot(message)
