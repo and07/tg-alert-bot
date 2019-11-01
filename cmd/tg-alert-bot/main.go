@@ -1,41 +1,63 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"context"
 	"os"
-	"strconv"
-	"time"
 
-	tgbotapi "github.com/Syfaro/telegram-bot-api"
+	"github.com/opentracing/opentracing-go"
+	"github.com/prometheus/client_golang/prometheus"
+	"gitlab.com/and07test/tg-alert-bot/internal/app/serv"
+
+	log "gitlab.com/and07test/tg-alert-bot/internal/pkg/logger"
+	"gitlab.com/and07test/tg-alert-bot/internal/pkg/template"
+	"gitlab.com/and07test/tg-alert-bot/internal/pkg/tracing"
 )
 
-func sendMessageToBot(message string) {
-	//Создаем бота
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TG_API_KEY"))
-	if err != nil {
-		log.Println(err)
-		return
-	}
+const (
+	pPublicPort  = "9090"
+	pPrivatePort = "9999"
+)
 
-	chatID, err := strconv.ParseInt(os.Getenv("TG_CHAT_ID"), 10, 64)
-	if err == nil {
-		fmt.Printf("%d of type %T", chatID, chatID)
-	}
-	// создаем ответное сообщение
-	msg := tgbotapi.NewMessage(chatID, message)
-	// отправляем
-	_, err = bot.Send(msg)
-	if err != nil {
-		log.Println(err)
-	}
+var counter prometheus.Counter
+
+func init() {
+	counter = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "hi_handler",
+		})
+	prometheus.MustRegister(counter)
 }
 
 func main() {
+	log.Info("Start APP")
 
-	ticker := time.NewTicker(6 * time.Hour)
-	for range ticker.C {
-		log.Println("Tick")
-		sendMessageToBot("test")
+	ctx := context.Background()
+
+	tracer, closer := tracing.Init("boilerplate-go")
+	defer closer.Close()
+	opentracing.SetGlobalTracer(tracer)
+
+	span := tracer.StartSpan("Main")
+	//span.SetTag("hello-to", helloTo)
+	defer span.Finish()
+
+	ctx = opentracing.ContextWithSpan(ctx, span)
+
+	publicPort := os.Getenv("PORT")
+
+	if publicPort == "" {
+		publicPort = pPublicPort
 	}
+
+	privatePort := os.Getenv("PPORT")
+	if privatePort == "" {
+		privatePort = pPrivatePort
+	}
+
+	tpl := template.NewTemplate("tpl/layouts/", "tpl/", `{{define "main" }} {{ template "base" . }} {{ end }}`)
+	tpl.Init()
+
+	srv := serv.New(ctx, serv.Option{PortPublicHTTP: publicPort, PortPrivateHTTP: privatePort})
+	srv.Run(ctx, publicHandle(ctx, tpl))
+
 }

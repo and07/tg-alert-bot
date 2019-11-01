@@ -7,5 +7,6 @@ RUN apk update \
         && update-ca-certificates 2>/dev/null || true
 
 COPY bin/tg-alert-bot .
+COPY tpl tpl
 
 CMD ["/tg-alert-bot"]
