@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	log "github.com/and07/tg-alert-bot/internal/pkg/logger"
 	"github.com/opentracing/opentracing-go"
-	log "gitlab.com/and07test/tg-alert-bot/internal/pkg/logger"
 )
 
 // Serv ...

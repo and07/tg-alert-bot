@@ -1,0 +1,86 @@
+name: Build and Test
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+
+  lint:
+    name: Lint
+    strategy:
+      matrix:
+        go-version: [1.14.x]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Lint Go Code
+        run: |
+          make lint
+
+  test:
+    name: Test
+    strategy:
+      matrix:
+        go-version: [1.14.x]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Run Unit tests.
+        run: make test
+
+  test-coverage:
+    name: Test Coverage
+    strategy:
+      matrix:
+        go-version: [1.14.x]
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Run tests coverage.
+        run: make test-coverage
+
+  build:
+    name: Build
+    strategy:
+      matrix:
+        go-version: [1.14.x]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
+    needs: [lint, test]
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: make build        

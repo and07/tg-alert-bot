@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
+	"github.com/and07/tg-alert-bot/internal/pkg/pubsub"
 	"github.com/opentracing/opentracing-go"
 	"github.com/streadway/amqp"
-	"gitlab.com/and07test/tg-alert-bot/internal/pkg/pubsub"
 )
 
 // NewRabbitmqClient ...

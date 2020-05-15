@@ -1,7 +1,9 @@
 // +heroku goVersion go1.12
 // +heroku install ./...
 
-module gitlab.com/and07test/tg-alert-bot
+module github.com/and07/tg-alert-bot
+
+go 1.14
 
 require (
 	github.com/Syfaro/telegram-bot-api v4.6.4+incompatible

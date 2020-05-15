@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	log "gitlab.com/and07test/tg-alert-bot/internal/pkg/logger"
+	log "github.com/and07/tg-alert-bot/internal/pkg/logger"
 )
 
 func graceful(ctx context.Context, srvs ...*http.Server) chan struct{} {

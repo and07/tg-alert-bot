@@ -4,13 +4,13 @@ import (
 	"context"
 	"os"
 
+	"github.com/and07/tg-alert-bot/internal/app/serv"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
-	"gitlab.com/and07test/tg-alert-bot/internal/app/serv"
 
-	log "gitlab.com/and07test/tg-alert-bot/internal/pkg/logger"
-	"gitlab.com/and07test/tg-alert-bot/internal/pkg/template"
-	"gitlab.com/and07test/tg-alert-bot/internal/pkg/tracing"
+	log "github.com/and07/tg-alert-bot/internal/pkg/logger"
+	"github.com/and07/tg-alert-bot/internal/pkg/template"
+	"github.com/and07/tg-alert-bot/internal/pkg/tracing"
 )
 
 const (
@@ -33,7 +33,7 @@ func main() {
 
 	ctx := context.Background()
 
-	tracer, closer := tracing.Init("boilerplate-go")
+	tracer, closer := tracing.Init("tg-alert-bot")
 	defer closer.Close()
 	opentracing.SetGlobalTracer(tracer)
 

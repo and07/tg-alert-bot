@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	tgbotapi "github.com/Syfaro/telegram-bot-api"
-	log "gitlab.com/and07test/tg-alert-bot/internal/pkg/logger"
-	"gitlab.com/and07test/tg-alert-bot/internal/pkg/template"
+	log "github.com/and07/tg-alert-bot/internal/pkg/logger"
+	"github.com/and07/tg-alert-bot/internal/pkg/template"
 )
 
 func sendMessageToBot(message string) {
