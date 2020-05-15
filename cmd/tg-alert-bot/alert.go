@@ -2,6 +2,7 @@ package main
 
 import "time"
 
+// Alert ...
 type Alert struct {
 	Status string `json:"status"`
 	Labels struct {
@@ -20,6 +21,7 @@ type Alert struct {
 	Fingerprint  string    `json:"fingerprint"`
 }
 
+// AlertMessage ...
 type AlertMessage struct {
 	Receiver    string  `json:"receiver"`
 	Status      string  `json:"status"`
