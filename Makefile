@@ -1,9 +1,9 @@
 # note: call scripts from /scripts
 SERVICE_NAME=tg-alert-bot
-USER=ad1asia
+USER=and07
 VERSION=latest
-REPOSITORY=$(USER)/$(SERVICE_NAME)
-QUAYVERSION = ${REPOSITORY}:$(VERSION)
+REPOSITORY="$(USER)/$(SERVICE_NAME)"
+QUAYVERSION = "${REPOSITORY}:$(VERSION)"
 
 TAG=${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
 CONTAINER_IMAGE=docker.io/${REPOSITORY}:${TAG}
@@ -14,7 +14,7 @@ LOCAL_BIN:=$(CURDIR)/bin
 
 # Check global GOLANGCI-LINT
 GOLANGCI_BIN:=$(LOCAL_BIN)/golangci-lint
-GOLANGCI_TAG:=1.13.1
+GOLANGCI_TAG:=1.26.0
 
 # Check local bin version
 ifneq ($(wildcard $(GOLANGCI_BIN)),)
@@ -62,7 +62,27 @@ LDFLAGS:=-X '${PROJECT}/version.Name=$(SERVICE_NAME)'\
          -X '${PROJECT}/version.adminPortDefault='\
          -X '${PROJECT}/version.grpcPortDefault='
 
-BUILD_ENVPARMS:=CGO_ENABLED=0
+
+PKGMAP:=Mgoogle/protobuf/any.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/api.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor,$\
+        Mgoogle/protobuf/duration.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/empty.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/field_mask.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/source_context.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/struct.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/type.proto=github.com/gogo/protobuf/types,$\
+        Mgoogle/protobuf/wrappers.proto=github.com/gogo/protobuf/types
+
+
+
+-include .env
+
+test-env:
+	@echo ${MY_ENV}
+
+BUILD_ENVPARMS:=CGO_ENABLED=0 PORT=${PORT} PORT_DEBUG=${PORT_DEBUG} PORT_GRPC=${PORT_GRPC} LOG_LEVEL=${LOG_LEVEL}
 BIN?=./bin/${APP}
 
 CONTAINER_IMAGE?=docker.io/webdeva/${APP}
@@ -74,25 +94,54 @@ CONTAINER_IMAGE?=docker.io/webdeva/${APP}
 
 # install project dependencies
 .PHONY: deps
-deps: .deps
+deps: .deps ## deps: Download modules
 
 .PHONY: .test
 .test:
 	$(info #Running tests...)
 	go test ./...
 
+test-coverage: ## Run tests with coverage
+	@go test -short -coverprofile cover.out -covermode=atomic ./...
+	@cat cover.out >> coverage.txt
+
+
+clean: ## Remove previous build
+	@rm -f ./bin
+
+help: ## Display this help screen
+	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
 # run unit tests
 .PHONY: test
-test: .test
+test: .test ## Run tests
 
-# install golangci-lint binary
+.PHONY: install-protoc
+install-protoc: ## Install protoc
+	go mod tidy
+	GOBIN=$(LOCAL_BIN)  go install \
+    github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway \
+    github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger \
+    github.com/golang/protobuf/protoc-gen-go
+
+gen-protoc: ## protoc generation
+	mkdir -p "./api/gen-${SERVICE_NAME}"
+	protoc -I/usr/local/include -I. \
+		-I${GOPATH}/src \
+		-I${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+		-I${GOPATH}/src/github.com/grpc-ecosystem/grpc-gateway \
+		--grpc-gateway_out=logtostderr=true:./api/gen-$(SERVICE_NAME) \
+		--swagger_out=allow_merge=true,merge_file_name=api:./assets/swaggerui \
+		--go_out=plugins=grpc:./api/gen-$(SERVICE_NAME) ./api/*.proto
+
+
 .PHONY: install-lint
-install-lint:
+install-lint: ## install golangci-lint binary
 ifeq ($(wildcard $(GOLANGCI_BIN)),)
 	$(info #Downloading golangci-lint v$(GOLANGCI_TAG))
 	go get -d github.com/golangci/golangci-lint@v$(GOLANGCI_TAG)
 	go build -ldflags "-X 'main.version=$(GOLANGCI_TAG)' -X 'main.commit=test' -X 'main.date=test'" -o $(LOCAL_BIN)/golangci-lint github.com/golangci/golangci-lint/cmd/golangci-lint
-	go mod tidy
+
 GOLANGCI_BIN:=$(LOCAL_BIN)/golangci-lint
 endif
 
@@ -103,11 +152,11 @@ endif
 
 # golangci-lint diff master
 .PHONY: lint
-lint: .lint
+lint: .lint ## Lint Golang files 
 
 # run full lint like in pipeline
 .PHONY: lint-full
-lint-full: install-lint
+lint-full: install-lint ## run full lint 
 	$(GOLANGCI_BIN) run --config=.golangci.pipeline.yaml ./...
 
 
@@ -118,7 +167,7 @@ lint-full: install-lint
 
 # build app
 .PHONY: build
-build: .build
+build: .build ## Build the binary file
 
 .PHONY: .run
 .run:
@@ -126,17 +175,17 @@ build: .build
 	$(BUILD_ENVPARMS) go run -ldflags "$(LDFLAGS)" ./cmd/${APP}
 # run app
 .PHONY: run
-run: .run
+run: .run ## Run appication
 
 
 .PHONY: docker-kill
-docker-kill:
+docker-kill: ## Docker compose kill
 	docker-compose -f $${DC_FILE:-deployments/docker-compose.yml} kill
 	docker-compose -f $${DC_FILE:-deployments/docker-compose.yml} rm -f
 	docker network rm network-$${CI_JOB_ID:-local} || true
 
 .PHONY: docker-build
-docker-build: docker-kill
+docker-build: docker-kill  ## Docker build
 	env GOBUILD=env GOOS=linux GOARCH=amd64 $(BUILD_ENVPARMS) go build -ldflags "$(LDFLAGS)" -o $(BIN) ./cmd/${APP}
 	#docker build -f docker/pg-migrations.dockerfile -t pg-migrations-$${CI_JOB_ID:-local} .
 	docker build --no-cache -t $(QUAYVERSION) -f build/package/project.dockerfile .
@@ -148,7 +197,7 @@ docker-up: docker-build
 	docker-compose -f $${DC_FILE:-deployments/docker-compose.yml} up --force-recreate --renew-anon-volumes -d
 
 .PHONY: docker-logs
-docker-logs:
+docker-logs: ## Docker logs
 	mkdir -p ./logs || true
 	#docker logs postgres-$${CI_JOB_ID:-local} >& logs/postgres.log
 	#docker logs pg-migrations-$${CI_JOB_ID:-local} >& logs/pg-migrations.log
@@ -185,18 +234,11 @@ docker-clean:
 	@echo "Занятость диска после очистки:"
 	@echo "$$(df -h /)"
 
-docker-container: docker-build
-    #docker build -t $(CONTAINER_IMAGE):$(RELEASE) .
-	echo $(VERSION)
-	#docker build --no-cache -t $(SERVICE_NAME) -f build/package/project.dockerfile .
-	#docker tag $(QUAYVERSION)
-
-docker-push: docker-container
-    #docker push $(CONTAINER_IMAGE):$(RELEASE)
+docker-push: docker-build
 	docker push $(QUAYVERSION)
 
 .PHONY: docker-push-ci
-docker-push-ci:
+docker-push-ci: ## Build go app for docker push
 	env GOBUILD=env GOOS=linux GOARCH=amd64 $(BUILD_ENVPARMS) go build -ldflags "$(LDFLAGS)" -o $(BIN) ./cmd/${APP}
 	docker build --no-cache -t ${CONTAINER_IMAGE} -f build/package/project.dockerfile .
 	echo $(VERSION)
@@ -204,7 +246,7 @@ docker-push-ci:
 	docker push ${CONTAINER_IMAGE}
 	docker push $(CONTAINER_IMAGE_LATEST)
 
-minikube:
+minikube: ## Run minikube
 	minikube delete
 	minikube start --vm-driver=hyperkit
 	minikube addons enable ingress
