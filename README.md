@@ -1,7 +1,6 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/and07/tg-alert-bot)](https://goreportcard.com/report/github.com/and07/tg-alert-bot)
 [![Actions Status](https://github.com/and07/tg-alert-bot/workflows/Build%20and%20Test/badge.svg)](https://github.com/and07/tg-alert-bot/actions)
 [![MIT License](http://img.shields.io/:license-mit-blue.svg)](LICENSE)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fand07%2Ftg-alert-bot.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fand07%2Ftg-alert-bot?ref=badge_shield)
 
 
 ## tg-alert-bot
