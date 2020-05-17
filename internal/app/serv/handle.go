@@ -1,6 +1,7 @@
 package serv
 
 import (
+	"context"
 	"net/http"
 	"net/http/pprof"
 
@@ -21,7 +22,7 @@ func prometheusHandler() http.Handler {
 	return promhttp.Handler()
 }
 
-func privateHandle() *http.ServeMux {
+func (s *Serv) privateHandle() *http.ServeMux {
 	rPrivate := http.NewServeMux()
 	rPrivate.Handle("/metrics", prometheusHandler())
 
@@ -32,17 +33,46 @@ func privateHandle() *http.ServeMux {
 	rPrivate.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	rPrivate.HandleFunc("/debug/pprof/trace", pprof.Trace)
 
+	// swagger
+	if s.swaggerui {
+		staticServer := http.FileServer(http.Dir("./assets/swaggerui"))
+		sh := http.StripPrefix("/swaggerui/", staticServer)
+		rPrivate.Handle("/swaggerui/", sh)
+	}
+
 	rPrivate.HandleFunc("/healthz", healthz)
 	rPrivate.HandleFunc("/readyz", readyz)
 	return rPrivate
 }
 
-func (s *Serv) runPrivateHTTP() *http.Server {
-	srvPrivate := &http.Server{Addr: ":" + s.portPrivateHTTP, Handler: privateHandle()}
+func (s *Serv) runPrivateHTTP(ctx context.Context) *http.Server {
+	srvPrivate := &http.Server{Addr: ":" + s.portPrivateHTTP, Handler: s.privateHandle()}
+	go func() {
+		s.Logger.Infof("http.Private start : %s", s.portPrivateHTTP)
+		if errSrvPrivateListenAndServe := srvPrivate.ListenAndServe(); errSrvPrivateListenAndServe != nil && errSrvPrivateListenAndServe != http.ErrServerClosed {
+			s.Logger.Errorf("HTTP server ListenAndServe: %v", errSrvPrivateListenAndServe)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+	}()
 	return srvPrivate
 }
 
-func (s *Serv) runPublicHTTP(h *http.ServeMux) *http.Server {
+func (s *Serv) runPublicHTTP(ctx context.Context, h *http.ServeMux) *http.Server {
 	srvPublic := &http.Server{Addr: ":" + s.portPublicHTTP, Handler: h}
+	go func() {
+		s.Logger.Infof("http.Public start : %s", s.portPublicHTTP)
+		if errSrvPublicListenAndServe := srvPublic.ListenAndServe(); errSrvPublicListenAndServe != nil && errSrvPublicListenAndServe != http.ErrServerClosed {
+			s.Logger.Errorf("HTTP server ListenAndServe: %v", errSrvPublicListenAndServe)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+	}()
 	return srvPublic
 }

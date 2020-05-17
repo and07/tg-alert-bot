@@ -5,12 +5,12 @@ import (
 	"os"
 
 	"github.com/and07/tg-alert-bot/internal/app/serv"
-	"github.com/opentracing/opentracing-go"
-	"github.com/prometheus/client_golang/prometheus"
-
 	log "github.com/and07/tg-alert-bot/internal/pkg/logger"
 	"github.com/and07/tg-alert-bot/internal/pkg/template"
 	"github.com/and07/tg-alert-bot/internal/pkg/tracing"
+	"github.com/caarlos0/env"
+	"github.com/opentracing/opentracing-go"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -57,7 +57,23 @@ func main() {
 	tpl := template.NewTemplate("tpl/layouts/", "tpl/", `{{define "main" }} {{ template "base" . }} {{ end }}`)
 	tpl.Init()
 
-	srv := serv.New(ctx, serv.Option{PortPublicHTTP: publicPort, PortPrivateHTTP: privatePort})
+	cfg := &Config{}
+	if err := env.Parse(cfg); err != nil {
+		log.Error(err)
+	}
+
+	if cfg.Port == "" {
+		cfg.Port = pPublicPort
+	}
+
+	if cfg.PortDebug == "" {
+		cfg.PortDebug = pPrivatePort
+	}
+
+	srv := serv.New(ctx,
+		serv.WithPublicPort(cfg.Port),
+		serv.WithDebugPort(cfg.PortDebug),
+	)
 	srv.Run(ctx, publicHandle(ctx, tpl))
 
 }
